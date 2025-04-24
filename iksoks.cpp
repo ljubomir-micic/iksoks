@@ -170,8 +170,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 delete ::game;
                 game = new tabla();
                 urTurn = ::conn->isServ();
-                if (multi && !urTurn) PostMessage(hWnd, MULTI_PORT, 0, 0);
                 InvalidateRect(hWnd, nullptr, TRUE);
+                if (multi && !urTurn) PostMessage(hWnd, MULTI_PORT, 0, 0);
             }
         }
         break;
@@ -191,7 +191,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             if (a == 101) ::win = ::game->getValue(row, col);
             InvalidateRect(hWnd, nullptr, TRUE);
             urTurn = false;
-            if (multi && !urTurn) PostMessage(hWnd, MULTI_PORT, 0, 0);
+            if (multi && !urTurn) SetTimer(hWnd, 1, 1, nullptr);
         }
     }
     break;
@@ -207,6 +207,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
     }
     break;
+
+    case WM_TIMER:
+        KillTimer(hWnd, 1);
+        PostMessage(hWnd, MULTI_PORT, 0, 0);
+        break;
 
     case WM_PAINT:
     {
