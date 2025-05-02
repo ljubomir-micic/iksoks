@@ -16,21 +16,49 @@ struct ContentView: View {
     var gameLogic: LogicHelper = LogicHelper()
     @State var scene: scene = .menu
     @State var tapNum: Int = 0
-    @State var won: Bool = false
+    @State var win: Int32 = 0
     @State var showMPSetup: Bool = false
     @State var didConn: Bool = false
     @State var isServ: Bool = false
     @State var ipa: String = ""
     
+    func WhoWins() -> String {
+        if (win == 1) {
+            return "X";
+        } else if (win == 2) {
+            return "O";
+        }
+        return "";
+    }
+    
+    func WhoWins() -> Color {
+        if (win == 1) {
+            return Color(#colorLiteral(red: 1, green: 0, blue: 0, alpha: 1));
+        } else if (win == 2) {
+            return Color(#colorLiteral(red: 0, green: 0, blue: 1, alpha: 1));
+        }
+        return Color(#colorLiteral(red: 0.4941176471, green: 0.4955747378, blue: 0.4955747378, alpha: 1));
+    }
+    
     var body: some View {
         if (scene == .menu) {
             VStack {
+                HStack {
+                    Image("iksoks")
+                        .resizable()
+                        .frame(width: 75, height: 75)
+                    
+                    Text("XksOks")
+                        .font(.title)
+                        .padding(.leading)
+                }
+                
                 Button {
                     scene = .game
                 } label: {
                     ZStack {
                         RoundedRectangle(cornerRadius: 25, style: .continuous)
-                            .frame(maxWidth: .infinity, maxHeight: 75)
+                            .frame(maxWidth: .infinity, maxHeight: 55)
                             .foregroundStyle(Color(#colorLiteral(red: 0, green: 0, blue: 1, alpha: 1)))
                             .padding(25)
                         Text("Start")
@@ -38,27 +66,37 @@ struct ContentView: View {
                     }
                 }
             }
-        } else if (won) {
+        } else if (win != 0) {
             VStack {
                 Spacer()
-                Text("Game ended. Player won. Tap to play again.")
+                Text("Igrac \(WhoWins()) je pobedio.\nDODIRNI EKRAN ZA NOVU PARTIJU")
+                    .multilineTextAlignment(.center)
                     .foregroundStyle(.white)
                 Spacer()
             }
-            .background(Color(#colorLiteral(red: 0.0168418996, green: 0.198341459, blue: 1, alpha: 1)))
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(WhoWins())
             .onTapGesture {
+                if (gameLogic.isMultiplayer()) {
+                    gameLogic.deinitMultiplayer()
+                }
                 gameLogic.startGame()
-                won = false
+                win = 0
             }
         } else {
             VStack {
                 HStack {
                     Button {
-                        
+                        if (gameLogic.isMultiplayer()) {
+                            gameLogic.deinitMultiplayer()
+                        }
+                        gameLogic.startGame()
+                        win = 0
+                        tapNum = 0
                     } label: {
-                        Image(systemName: "gearshape.fill")
+                        Image(systemName: "arrow.clockwise")
                     }
+                    .disabled(tapNum==0)
                     
                     Spacer()
                     
@@ -124,8 +162,13 @@ struct ContentView: View {
                             let location = value.location
                             let size = min(UIScreen.main.bounds.width, UIScreen.main.bounds.height) // Or whatever actual size you want
                             let cellSize = size / 3
-                            let res = gameLogic.handleInput(Int32(location.y / cellSize), Int32(location.x / cellSize))
-                            if (res == 101) { tapNum = 0; won = true }
+                            let x = Int32(location.y / cellSize)
+                            let y = Int32(location.x / cellSize)
+                            let res = gameLogic.handleInput(x, y)
+                            if (gameLogic.isMultiplayer()) {
+                                gameLogic.sendData("\(x)\(y)")
+                            }
+                            if (res == 101) { tapNum = 0; win = gameLogic.getValue(x, y) }
                             else { tapNum += 1 }
                         }
                 )
@@ -137,7 +180,11 @@ struct ContentView: View {
             .onChange(of: showMPSetup) { oldValue, newValue in
                 if (newValue == false) {
                     if didConn == true {
-                        gameLogic.initMultiplayer(isServ, ipa)
+                        guard gameLogic.initMultiplayer(isServ, ipa) != 0 else {
+                            isServ = false
+                            didConn = false
+                            return
+                        }
                     } else {
                         isServ = false
                     }

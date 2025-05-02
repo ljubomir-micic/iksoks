@@ -14,8 +14,11 @@ struct MPIView: View {
     @Binding var ipa: String
     
     var body: some View {
-        VStack {
+        HStack {
             TextField("IP Address", text: $ipa)
+                .padding(5)
+                .cornerRadius(15)
+                .border(.accent)
             
             Button {
                 didConn = true
@@ -23,7 +26,9 @@ struct MPIView: View {
             } label: {
                 Text("Connect")
             }
+            .buttonStyle(.borderedProminent)
         }
+        .padding()
     }
 }
 

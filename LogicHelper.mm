@@ -12,7 +12,6 @@
 @implementation LogicHelper {
     connection* conn;
     tabla* gameBoard;
-@public
     BOOL isMultiplayer;
 }
 
@@ -83,6 +82,10 @@
 
 - (int)nextToVanish {
     return gameBoard->nextToVanish();
+}
+
+- (BOOL) isMultiplayer {
+    return isMultiplayer;
 }
 
 - (int)turn_t {

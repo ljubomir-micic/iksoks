@@ -23,6 +23,7 @@
 - (int)getValue:(int)x
                :(int)y;
 - (int) nextToVanish; // return 4bit number
+- (BOOL) isMultiplayer;
 - (int) turn_t;
 @end
 
