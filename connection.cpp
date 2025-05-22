@@ -2,8 +2,15 @@
 #include <cstring>
 #include <stdexcept>
 #include <string>
-
+#ifndef _WIN32
+#include <sys/socket.h>
+#include <unistd.h>
+#define closesocket close
+#define SOCKET_ERROR -1
+#define INVALID_SOCKET -1
+#else
 #pragma comment(lib, "ws2_32.lib")
+#endif
 
 connection::connection(bool& servMode, char* ipa) {
     this->servMode = servMode;
@@ -15,7 +22,9 @@ connection::connection(bool& servMode, char* ipa) {
     if (servMode) {
         this->servaddr.sin_addr.s_addr = INADDR_ANY;
         if (bind(this->sock, (sockaddr*)&this->servaddr, sizeof(this->servaddr)) == SOCKET_ERROR) {
+#ifndef _WIN32
             int error = WSAGetLastError();
+#endif
             closesocket(this->sock);
             throw error;
         }
@@ -26,7 +35,11 @@ connection::connection(bool& servMode, char* ipa) {
         }
 
         sockaddr_in clientAddr;
+#ifdef _WIN32
         int clientAddrLen = sizeof(clientAddr);
+#else
+        socklen_t clientAddrLen = sizeof(clientAddr);
+#endif
         this->clientSock = accept(this->sock, (sockaddr*)&clientAddr, &clientAddrLen);
 
         if (this->clientSock == INVALID_SOCKET) {
