@@ -1,7 +1,5 @@
 #include "connection.h"
 #include <cstring>
-#include <stdexcept>
-#include <string>
 #ifndef _WIN32
 #include <sys/socket.h>
 #include <unistd.h>
@@ -9,6 +7,8 @@
 #define SOCKET_ERROR -1
 #define INVALID_SOCKET -1
 #else
+#include <stdexcept>
+#include <string>
 #pragma comment(lib, "ws2_32.lib")
 #endif
 
